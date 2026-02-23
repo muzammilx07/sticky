@@ -309,11 +309,22 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('schedule-date').value = today;
 
-    // ── Time options (hourly 8AM–9PM) ──────────────────────
+    // ── Time options (every 30 min, 8AM–9PM) ───────────────
     const times = [
-      "08:00 AM","09:00 AM","10:00 AM","11:00 AM","12:00 PM",
-      "01:00 PM","02:00 PM","03:00 PM","04:00 PM","05:00 PM",
-      "06:00 PM","07:00 PM","08:00 PM","09:00 PM"
+      "08:00 AM","08:30 AM",
+      "09:00 AM","09:30 AM",
+      "10:00 AM","10:30 AM",
+      "11:00 AM","11:30 AM",
+      "12:00 PM","12:30 PM",
+      "01:00 PM","01:30 PM",
+      "02:00 PM","02:30 PM",
+      "03:00 PM","03:30 PM",
+      "04:00 PM","04:30 PM",
+      "05:00 PM","05:30 PM",
+      "06:00 PM","06:30 PM",
+      "07:00 PM","07:30 PM",
+      "08:00 PM","08:30 PM",
+      "09:00 PM"
     ];
 
     // ── Institutions ───────────────────────────────────────
@@ -444,17 +455,17 @@
 
     // ── Add 2 sessions by default ──────────────────────────
     addSession();
-    // Pre-select slot 2 for second session
+    // Pre-select slot for first session: 02:00 PM → 03:00 PM
     const container = document.getElementById('sessions-container');
     const s1 = container.querySelector('.time-from');
-    if (s1) s1.value = times[6]; // 02:00 PM
-    container.querySelector('.time-to').value = times[7]; // 03:00 PM
+    if (s1) s1.value = times[12]; // 02:00 PM
+    container.querySelector('.time-to').value = times[14]; // 03:00 PM
 
     addSession();
     const sessions = container.querySelectorAll('.session');
     if (sessions[1]) {
-      sessions[1].querySelector('.time-from').value = times[7]; // 03:00 PM
-      sessions[1].querySelector('.time-to').value   = times[8]; // 04:00 PM
+      sessions[1].querySelector('.time-from').value = times[14]; // 03:00 PM
+      sessions[1].querySelector('.time-to').value   = times[16]; // 04:00 PM
     }
 
   </script>
