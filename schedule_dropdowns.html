@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Training Schedule</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f4f6f9;
+      font-family: 'Inter', sans-serif;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 80px;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-add   { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
+    .btn-add:hover { background: #dbeafe; }
+    .btn-copy  { color: #059669; border-color: #6ee7b7; background: #ecfdf5; }
+    .btn-copy:hover { background: #d1fae5; }
+    .btn-print { color: #7c3aed; border-color: #c4b5fd; background: #f5f3ff; margin-left: auto; }
+    .btn-print:hover { background: #ede9fe; }
+
+    /* ── Card ── */
+    .schedule {
+      width: 100%;
+      max-width: 640px;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    /* ── Header ── */
+    .schedule-header {
+      padding: 24px 28px 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .header-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #111;
+      outline: none;
+      margin-bottom: 8px;
+    }
+
+    .header-title:focus { border-bottom: 1px dashed #aaa; }
+
+    .header-date-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #555;
+    }
+
+    .header-date-row input[type="date"] {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #222;
+      background: #fafafa;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .header-date-row input[type="date"]:focus { border-color: #2563eb; }
+
+    /* ── Session ── */
+    .session {
+      padding: 20px 28px;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+    }
+
+    .session:last-child { border-bottom: none; }
+
+    .session-delete {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      border: 1px solid #eee;
+      background: white;
+      color: #ccc;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.15s;
+    }
+
+    .session:hover .session-delete { opacity: 1; }
+    .session-delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+
+    /* ── Field rows ── */
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 88px;
+      flex-shrink: 0;
+    }
+
+    /* Shared input/select style */
+    .field-select, .field-input {
+      flex: 1;
+      border: 1px solid #e5e5e5;
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      color: #222;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+
+    .field-select:focus, .field-input:focus {
+      border-color: #2563eb;
+      background: #fff;
+    }
+
+    /* Time row — two selects + dash */
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .time-row .field-label { min-width: 88px; }
+
+    .time-select {
+      flex: 1;
+      border: 1px solid #e5e5e5;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      color: #222;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.15s;
+      cursor: pointer;
+    }
+
+    .time-select:focus { border-color: #2563eb; background: #fff; }
+
+    .time-dash { color: #aaa; font-weight: 500; font-size: 14px; }
+
+    /* Batch row — section input + batch select side by side */
+    .batch-row {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .batch-row .field-input { flex: 2; }
+    .batch-row .field-select { flex: 1; min-width: 0; }
+
+    /* Project box */
+    .session-project {
+      margin-top: 12px;
+      padding: 11px 14px;
+      background: #f0f6ff;
+      border-left: 3px solid #2563eb;
+      border-radius: 0 7px 7px 0;
+    }
+
+    .project-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #2563eb;
+      margin-bottom: 5px;
+    }
+
+    .project-input {
+      width: 100%;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      background: white;
+      outline: none;
+    }
+
+    .project-input:focus { border-color: #2563eb; }
+    .project-input::placeholder { color: #aaa; font-weight: 400; }
+
+    /* ── Hint ── */
+    .edit-hint {
+      margin-top: 14px;
+      font-size: 12px;
+      color: #bbb;
+      text-align: center;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: #111;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.25s ease;
+      z-index: 99;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; padding: 0; }
+      .toolbar, .session-delete, .edit-hint, .toast { display: none !important; }
+      .schedule { box-shadow: none; border: 1px solid #ddd; max-width: 100%; border-radius: 0; }
+      select, input { border: none !important; background: transparent !important; padding: 0 !important; }
+      .session-project { background: #f0f6ff; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn-add" onclick="addSession()">＋ Add Session</button>
+    <button class="btn-copy" onclick="copyText()">📋 Copy as Text</button>
+    <button class="btn-print" onclick="window.print()">🖨 Print / PDF</button>
+  </div>
+
+  <!-- Schedule -->
+  <div class="schedule">
+
+    <!-- Header -->
+    <div class="schedule-header">
+      <div class="header-title" contenteditable="true" spellcheck="false">📢 Project Training Schedule</div>
+      <div class="header-date-row">
+        📅 Date: &nbsp;
+        <input type="date" id="schedule-date" />
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div id="sessions-container"></div>
+
+  </div>
+
+  <div class="edit-hint">Select from dropdowns · Type project name · Click ✕ on hover to delete</div>
+  <div class="toast" id="toast">✅ Copied!</div>
+
+  <script>
+
+    // ── Set today's date ───────────────────────────────────
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('schedule-date').value = today;
+
+    // ── Time options (hourly 8AM–9PM) ──────────────────────
+    const times = [
+      "08:00 AM","09:00 AM","10:00 AM","11:00 AM","12:00 PM",
+      "01:00 PM","02:00 PM","03:00 PM","04:00 PM","05:00 PM",
+      "06:00 PM","07:00 PM","08:00 PM","09:00 PM"
+    ];
+
+    // ── Institutions ───────────────────────────────────────
+    const institutions = ["KITS AKSHAR", "Sriniet"];
+
+    // ── Build <select> HTML ────────────────────────────────
+    function timeOptions(selected = "") {
+      return times.map(t =>
+        `<option value="${t}" ${t === selected ? "selected" : ""}>${t}</option>`
+      ).join('');
+    }
+
+    function institutionOptions(selected = "") {
+      return institutions.map(i =>
+        `<option value="${i}" ${i === selected ? "selected" : ""}>${i}</option>`
+      ).join('');
+    }
+
+    function batchOptions(selected = "") {
+      let opts = `<option value="" disabled ${!selected ? "selected" : ""}>Batch</option>`;
+      for (let i = 1; i <= 20; i++) {
+        opts += `<option value="${i}" ${String(i) === String(selected) ? "selected" : ""}>Batch-${i}</option>`;
+      }
+      return opts;
+    }
+
+    // ── Session HTML template ──────────────────────────────
+    function sessionHTML(fromIdx = 0) {
+      const defaultFrom = times[fromIdx % times.length];
+      const defaultTo   = times[(fromIdx + 1) % times.length];
+
+      return `
+        <button class="session-delete" onclick="deleteSession(this)" title="Delete">✕</button>
+
+        <div class="time-row">
+          <span class="field-label">⏰ Time</span>
+          <select class="time-select time-from">${timeOptions(defaultFrom)}</select>
+          <span class="time-dash">→</span>
+          <select class="time-select time-to">${timeOptions(defaultTo)}</select>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">🏫 Institution</span>
+          <select class="field-select inst-select">
+            <option value="" disabled selected>Select Institution</option>
+            ${institutionOptions()}
+          </select>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">🎓 Section</span>
+          <div class="batch-row">
+            <input class="field-input" type="text" placeholder="e.g. CSE-A" maxlength="20"/>
+            <select class="field-select">${batchOptions()}</select>
+          </div>
+        </div>
+
+        <div class="session-project">
+          <div class="project-label">📁 Project Name</div>
+          <input class="project-input" type="text" placeholder="Enter project name here…"/>
+        </div>
+      `;
+    }
+
+    // ── Add session ────────────────────────────────────────
+    function addSession() {
+      const container = document.getElementById('sessions-container');
+      const count = container.querySelectorAll('.session').length;
+
+      const div = document.createElement('div');
+      div.className = 'session';
+      div.innerHTML = sessionHTML(count + 2); // starts at 02:00 PM slot
+      container.appendChild(div);
+
+      // Auto-advance "to" time when "from" changes
+      const fromSel = div.querySelector('.time-from');
+      const toSel   = div.querySelector('.time-to');
+      fromSel.addEventListener('change', () => {
+        const fromIdx = times.indexOf(fromSel.value);
+        if (fromIdx < times.length - 1) toSel.value = times[fromIdx + 1];
+      });
+
+      div.querySelector('.project-input').focus();
+    }
+
+    // ── Delete session ─────────────────────────────────────
+    function deleteSession(btn) {
+      const s = btn.closest('.session');
+      s.style.opacity = '0';
+      s.style.transition = 'opacity 0.2s';
+      setTimeout(() => s.remove(), 200);
+    }
+
+    // ── Copy as text ───────────────────────────────────────
+    function copyText() {
+      const title = document.querySelector('.header-title').innerText;
+      const dateVal = document.getElementById('schedule-date').value;
+      const dateStr = dateVal
+        ? new Date(dateVal + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '';
+
+      let text = `${title}\n📅 Date: ${dateStr}\n\n`;
+
+      document.querySelectorAll('.session').forEach((s, i) => {
+        const from    = s.querySelector('.time-from')?.value || '';
+        const to      = s.querySelector('.time-to')?.value   || '';
+        const inst    = s.querySelector('.inst-select')?.value || '';
+        const section = s.querySelector('.field-input')?.value || '';
+        const batch   = s.querySelectorAll('.field-select')[1]?.value || '';
+        const project = s.querySelector('.project-input')?.value || '';
+
+        text += `${from} – ${to}\n`;
+        text += `Institution : ${inst}\n`;
+        text += `Section     : ${section} (${batch ? 'Batch-' + batch : ''})\n`;
+        text += `Project     : ${project}\n\n`;
+      });
+
+      navigator.clipboard.writeText(text.trim()).then(() => showToast('✅ Copied to clipboard!'));
+    }
+
+    // ── Toast ──────────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ── Add 2 sessions by default ──────────────────────────
+    addSession();
+    // Pre-select slot 2 for second session
+    const container = document.getElementById('sessions-container');
+    const s1 = container.querySelector('.time-from');
+    if (s1) s1.value = times[6]; // 02:00 PM
+    container.querySelector('.time-to').value = times[7]; // 03:00 PM
+
+    addSession();
+    const sessions = container.querySelectorAll('.session');
+    if (sessions[1]) {
+      sessions[1].querySelector('.time-from').value = times[7]; // 03:00 PM
+      sessions[1].querySelector('.time-to').value   = times[8]; // 04:00 PM
+    }
+
+  </script>
+</body>
+</html>
